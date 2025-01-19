@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./index.css";
 
 function App() {
@@ -7,6 +7,8 @@ function App() {
   const [charAllowed, setCharAllowed] = useState(false);
   const [password, setPassword] = useState("");
 
+  const passwordRef = useRef(null);
+
   const passwordGeneration = useCallback(() => {
     let pass = "";
     let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -14,14 +16,24 @@ function App() {
     if (numberAllowed) str += "123456789";
     if (charAllowed) str += "!@#$%^&*()_+";
 
-    for (let i = 1; i <= Array.length; i++) {
+    for (let i = 1; i <= length; i++) {
       let char = Math.floor(Math.random() * str.length + 1);
 
-      pass = str.charAt(char);
+      pass += str.charAt(char);
     }
 
     setPassword(pass);
   }, [length, numberAllowed, charAllowed, setPassword]);
+
+  const copyToClipBoard = useCallback(() => {
+    passwordRef.current?.select();
+    passwordRef.current?.setSelectionRange(0, 3);
+    window.navigator.clipboard.writeText(password);
+  }, [password]);
+
+  useEffect(() => {
+    passwordGeneration();
+  }, [length, charAllowed, numberAllowed, passwordGeneration]);
 
   return (
     <>
@@ -34,8 +46,13 @@ function App() {
             className="outline-none w-full py-1 px-3"
             onChange={(e) => setPassword(e.target.value)}
             readOnly
+            placeholder="Password"
+            ref={passwordRef}
           />
-          <button className="outline-none bg-green-700 text-white px-3 py-0.5 shrink-0">
+          <button
+            onClick={copyToClipBoard}
+            className="outline-none bg-green-700 text-white px-3 py-0.5 shrink-0"
+          >
             Copy
           </button>
         </div>
@@ -59,6 +76,15 @@ function App() {
               onChange={() => setNumberAllowed((prev) => !prev)}
             />
             <label className="text-white">Numbers</label>
+          </div>
+          <div className="flex text-sm gap-x-0.5">
+            <input
+              type="checkbox"
+              defaultChecked={charAllowed}
+              id="numberInput"
+              onChange={() => setCharAllowed((prev) => !prev)}
+            />
+            <label className="text-white">Characters</label>
           </div>
         </div>
       </div>
